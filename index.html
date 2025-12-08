@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日文單字 L11-L12 複習工具</title>
+    <style>
+        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; background: #f4f7f6; margin: 0; padding: 20px; color: #333; }
+        .card { width: 320px; min-height: 220px; background: white; border-radius: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; text-align: center; padding: 25px; transition: 0.3s; margin-top: 30px; }
+        .term { font-size: 28px; font-weight: bold; }
+        .def { font-size: 20px; color: #007bff; margin-top: 15px; display: none; word-break: break-all; }
+        .btn-group { margin-top: 25px; display: flex; gap: 10px; }
+        .btn { padding: 12px 24px; background: #007bff; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; }
+        #quiz-section { margin-top: 30px; display: none; width: 320px; background: white; padding: 20px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .option-btn { width: 100%; padding: 12px; margin: 8px 0; background: #f8f9fa; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; text-align: left; font-size: 15px; }
+        .option-btn:hover { background: #e2e6ea; }
+    </style>
+</head>
+<body>
+
+    <h1>單字複習工具 (L11-L12)</h1>
+    
+    <div class="card" onclick="flipCard()">
+        <div class="term" id="term-display">點擊開始單字卡</div>
+        <div class="def" id="def-display"></div>
+    </div>
+    
+    <div class="btn-group">
+        <button class="btn" onclick="nextCard()">下一張</button>
+        <button class="btn" style="background:#6c757d" onclick="toggleQuiz()">切換模式</button>
+    </div>
+
+    <div id="quiz-section">
+        <h3 id="quiz-title">測驗模式</h3>
+        <p id="quiz-question" style="font-size:18px; font-weight:bold"></p>
+        <div id="quiz-options"></div>
+    </div>
+
+    <script>
+        const vocab = [
+            {term: "拜訪", def: "訪れる / 訪れます / おとずれる (II)"},
+            {term: "敲、拍", def: "叩く / 叩きます / たたく (I)"},
+            {term: "改變", def: "変わる / 変わります / かわる (I)"},
+            {term: "知道", def: "知っている / 知っています / しっている (III/特殊)"},
+            {term: "開發", def: "開發する / 開發します / かいはつする (III)"},
+            {term: "成功", def: "成功する / 成功します / せいこうする (III)"},
+            {term: "放置", def: "置く / 置きます / おく (I)"},
+            {term: "拿出、寄出", def: "出す / 出します / だす (I)"},
+            {term: "迎接（人）", def: "（人を）迎える / 迎えます / むかえる (II)"},
+            {term: "贏", def: "勝つ / 勝ちます / かつ (I)"},
+            {term: "擁擠", def: "混む / 混みます / こむ (I)"},
+            {term: "合格", def: "合格する / 合格します / ごうかくする (III)"},
+            {term: "找到", def: "見つける / 見つけます / みつける (II)"},
+            {term: "居住", def: "住む / 住みます / すむ (I)"},
+            {term: "調查", def: "調査する / 調査します / ちょうさする (III)"}
+            // 這裡可以繼續依照此格式手動貼入名詞部分
+        ];
+
+        let currentIndex = 0;
+
+        function flipCard() {
+            const defDisplay = document.getElementById('def-display');
+            defDisplay.style.display = (defDisplay.style.display === 'none') ? 'block' : 'none';
+        }
+
+        function nextCard() {
+            currentIndex = Math.floor(Math.random() * vocab.length);
+            document.getElementById('term-display').innerText = vocab[currentIndex].term;
+            document.getElementById('def-display').innerText = vocab[currentIndex].def;
+            document.getElementById('def-display').style.display = 'none';
+            document.getElementById('quiz-section').style.display = 'none';
+        }
+
+        function toggleQuiz() {
+            const quiz = document.getElementById('quiz-section');
+            if(quiz.style.display === 'none') {
+                quiz.style.display = 'block';
+                nextQuiz();
+            } else {
+                quiz.style.display = 'none';
+            }
+        }
+
+        function nextQuiz() {
+            currentIndex = Math.floor(Math.random() * vocab.length);
+            document.getElementById('quiz-question').innerText = "「" + vocab[currentIndex].term + "」的日文是？";
+            
+            let options = [vocab[currentIndex].def];
+            while (options.length < 4) {
+                let r = vocab[Math.floor(Math.random() * vocab.length)].def;
+                if (!options.includes(r)) options.push(r);
+            }
+            options.sort(() => Math.random() - 0.5);
+
+            const optionsDiv = document.getElementById('quiz-options');
+            optionsDiv.innerHTML = '';
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = opt;
+                btn.onclick = () => {
+                    if(opt === vocab[currentIndex].def) {
+                        alert("正確！"); nextQuiz();
+                    } else {
+                        alert("錯了，正確是：\n" + vocab[currentIndex].def);
+                    }
+                };
+                optionsDiv.appendChild(btn);
+            });
+        }
+    </script>
+</body>
+</html>
