@@ -3,92 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>日文單字 L11-L12 複習工具</title>
+    <title>日文 L11-L12 標音複習工具</title>
     <style>
-        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; background: #f4f7f6; margin: 0; padding: 20px; color: #333; }
-        .card { width: 320px; min-height: 220px; background: white; border-radius: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; text-align: center; padding: 25px; transition: 0.3s; margin-top: 30px; }
-        .term { font-size: 28px; font-weight: bold; }
-        .def { font-size: 20px; color: #007bff; margin-top: 15px; display: none; word-break: break-all; }
-        .btn-group { margin-top: 25px; display: flex; gap: 10px; }
-        .btn { padding: 12px 24px; background: #007bff; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; }
-        #quiz-section { margin-top: 30px; display: none; width: 320px; background: white; padding: 20px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-        .option-btn { width: 100%; padding: 12px; margin: 8px 0; background: #f8f9fa; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; text-align: left; font-size: 15px; }
-        .option-btn:hover { background: #e2e6ea; }
+        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; background: #f0f2f5; margin: 0; padding: 20px; }
+        .card { width: 320px; min-height: 200px; background: white; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; text-align: center; padding: 20px; transition: transform 0.2s; margin-top: 30px; border: 1px solid #e0e0e0; }
+        .card:active { transform: scale(0.98); }
+        .term { font-size: 26px; font-weight: bold; color: #333; }
+        .def { font-size: 19px; color: #007bff; margin-top: 15px; display: none; line-height: 1.5; }
+        .btn-group { margin-top: 20px; display: flex; gap: 10px; }
+        .btn { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; font-weight: bold; }
+        .btn-quiz { background: #28a745; }
+        #quiz-section { margin-top: 25px; display: none; width: 320px; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .option-btn { width: 100%; padding: 12px; margin: 5px 0; background: #fff; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; text-align: left; font-size: 14px; }
+        .option-btn:hover { background: #f1f3f5; }
+        .furigana { font-size: 14px; color: #888; display: block; margin-bottom: 2px; }
     </style>
 </head>
 <body>
 
-    <h1>單字複習工具 (L11-L12)</h1>
+    <h1>單字標音複習工具</h1>
     
     <div class="card" onclick="flipCard()">
-        <div class="term" id="term-display">點擊開始單字卡</div>
-        <div class="def" id="def-display"></div>
+        <div id="card-front">
+            <div class="term" id="term-display">點擊下一張開始</div>
+        </div>
+        <div id="card-back" class="def">
+            <span id="masu-display"></span><br>
+            <span id="yomi-display" style="font-size: 16px; color: #666;"></span>
+        </div>
     </div>
     
     <div class="btn-group">
         <button class="btn" onclick="nextCard()">下一張</button>
-        <button class="btn" style="background:#6c757d" onclick="toggleQuiz()">切換模式</button>
+        <button class="btn btn-quiz" onclick="toggleQuiz()">切換測驗</button>
     </div>
 
     <div id="quiz-section">
-        <h3 id="quiz-title">測驗模式</h3>
-        <p id="quiz-question" style="font-size:18px; font-weight:bold"></p>
+        <p id="quiz-question" style="font-weight:bold"></p>
         <div id="quiz-options"></div>
     </div>
 
     <script>
+        // 資料集：包含標音與ます形 [cite: 1, 2, 17]
         const vocab = [
-            {term: "拜訪", def: "訪れる / 訪れます / おとずれる (II)"},
-            {term: "敲、拍", def: "叩く / 叩きます / たたく (I)"},
-            {term: "改變", def: "変わる / 変わります / かわる (I)"},
-            {term: "知道", def: "知っている / 知っています / しっている (III/特殊)"},
-            {term: "開發", def: "開發する / 開發します / かいはつする (III)"},
-            {term: "成功", def: "成功する / 成功します / せいこうする (III)"},
-            {term: "放置", def: "置く / 置きます / おく (I)"},
-            {term: "拿出、寄出", def: "出す / 出します / だす (I)"},
-            {term: "迎接（人）", def: "（人を）迎える / 迎えます / むかえる (II)"},
-            {term: "贏", def: "勝つ / 勝ちます / かつ (I)"},
-            {term: "擁擠", def: "混む / 混みます / こむ (I)"},
-            {term: "合格", def: "合格する / 合格します / ごうかくする (III)"},
-            {term: "找到", def: "見つける / 見つけます / みつける (II)"},
-            {term: "居住", def: "住む / 住みます / すむ (I)"},
-            {term: "調查", def: "調査する / 調査します / ちょうさする (III)"}
-            // 這裡可以繼續依照此格式手動貼入名詞部分
+            {term: "拜訪", masu: "訪れます", yomi: "訪れる (おとずれる) / II", group: "II"},
+            {term: "敲、拍", masu: "叩きます", yomi: "叩く (たたく) / I", group: "I"},
+            {term: "改變", masu: "変わります", yomi: "変わる (かわる) / I", group: "I"},
+            {term: "成功", masu: "成功します", yomi: "成功する (せいこうする) / III", group: "III"},
+            {term: "放置", masu: "置きます", yomi: "置く (おく) / I", group: "I"},
+            {term: "拿出", masu: "出します", yomi: "出す (だす) / I", group: "I"},
+            {term: "畢業旅行", masu: "卒業旅行", yomi: "そつぎょうりょこう / 名詞", group: "N"},
+            {term: "不方便的", masu: "不便な", yomi: "不便な (ふべんな) / な形", group: "Adj"},
+            {term: "忙碌的", masu: "忙しい", yomi: "忙しい (いそがしい) / い形", group: "Adj"},
+            {term: "雖然...但是", masu: "～けど", yomi: "～けど / 接續", group: "Other"}
+            // 這裡可以根據需要繼續擴充 [cite: 2, 17]
         ];
 
         let currentIndex = 0;
 
         function flipCard() {
-            const defDisplay = document.getElementById('def-display');
-            defDisplay.style.display = (defDisplay.style.display === 'none') ? 'block' : 'none';
+            const back = document.getElementById('card-back');
+            back.style.display = (back.style.display === 'none') ? 'block' : 'none';
         }
 
         function nextCard() {
             currentIndex = Math.floor(Math.random() * vocab.length);
             document.getElementById('term-display').innerText = vocab[currentIndex].term;
-            document.getElementById('def-display').innerText = vocab[currentIndex].def;
-            document.getElementById('def-display').style.display = 'none';
+            document.getElementById('masu-display').innerText = vocab[currentIndex].masu;
+            document.getElementById('yomi-display').innerText = vocab[currentIndex].yomi;
+            document.getElementById('card-back').style.display = 'none';
             document.getElementById('quiz-section').style.display = 'none';
         }
 
         function toggleQuiz() {
             const quiz = document.getElementById('quiz-section');
-            if(quiz.style.display === 'none') {
-                quiz.style.display = 'block';
-                nextQuiz();
-            } else {
-                quiz.style.display = 'none';
-            }
+            quiz.style.display = (quiz.style.display === 'none') ? 'block' : 'none';
+            if (quiz.style.display === 'block') nextQuiz();
         }
 
         function nextQuiz() {
             currentIndex = Math.floor(Math.random() * vocab.length);
             document.getElementById('quiz-question').innerText = "「" + vocab[currentIndex].term + "」的日文是？";
             
-            let options = [vocab[currentIndex].def];
+            let options = [vocab[currentIndex].masu + " (" + vocab[currentIndex].yomi + ")"];
             while (options.length < 4) {
-                let r = vocab[Math.floor(Math.random() * vocab.length)].def;
-                if (!options.includes(r)) options.push(r);
+                let r = vocab[Math.floor(Math.random() * vocab.length)];
+                let optionText = r.masu + " (" + r.yomi + ")";
+                if (!options.includes(optionText)) options.push(optionText);
             }
             options.sort(() => Math.random() - 0.5);
 
@@ -99,10 +100,11 @@
                 btn.className = 'option-btn';
                 btn.innerText = opt;
                 btn.onclick = () => {
-                    if(opt === vocab[currentIndex].def) {
+                    const correctText = vocab[currentIndex].masu + " (" + vocab[currentIndex].yomi + ")";
+                    if(opt === correctText) {
                         alert("正確！"); nextQuiz();
                     } else {
-                        alert("錯了，正確是：\n" + vocab[currentIndex].def);
+                        alert("錯囉！正確答案是：\n" + correctText);
                     }
                 };
                 optionsDiv.appendChild(btn);
