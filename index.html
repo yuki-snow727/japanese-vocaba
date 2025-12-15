@@ -3,33 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>日文 L11-L12 標音複習工具</title>
+    <title>日文 L11-L12 所有單字複習工具 (含發音)</title>
     <style>
         body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; background: #f0f2f5; margin: 0; padding: 20px; }
-        .card { width: 320px; min-height: 200px; background: white; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; text-align: center; padding: 20px; transition: transform 0.2s; margin-top: 30px; border: 1px solid #e0e0e0; }
+        .card { width: 320px; min-height: 200px; background: white; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; text-align: center; padding: 20px; transition: transform 0.2s; margin-top: 30px; border: 1px solid #e0e0e0; position: relative; }
         .card:active { transform: scale(0.98); }
         .term { font-size: 26px; font-weight: bold; color: #333; }
         .def { font-size: 19px; color: #007bff; margin-top: 15px; display: none; line-height: 1.5; }
         .btn-group { margin-top: 20px; display: flex; gap: 10px; }
-        .btn { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; font-weight: bold; }
+        .btn { padding: 10px 15px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 15px; font-weight: bold; }
         .btn-quiz { background: #28a745; }
+        .btn-speech { background: #ffc107; color: #333; margin-top: 10px; }
         #quiz-section { margin-top: 25px; display: none; width: 320px; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         .option-btn { width: 100%; padding: 12px; margin: 5px 0; background: #fff; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; text-align: left; font-size: 14px; }
         .option-btn:hover { background: #f1f3f5; }
-        .furigana { font-size: 14px; color: #888; display: block; margin-bottom: 2px; }
     </style>
 </head>
 <body>
 
-    <h1>單字標音複習工具</h1>
+    <h1>單字標音複習工具 (L11-L12)</h1>
     
     <div class="card" onclick="flipCard()">
         <div id="card-front">
             <div class="term" id="term-display">點擊下一張開始</div>
+            <button class="btn btn-speech" id="speech-btn" onclick="event.stopPropagation(); speakText(getCurrentJapaneseText());" disabled>點此發音</button>
         </div>
         <div id="card-back" class="def">
-            <span id="masu-display"></span><br>
-            <span id="yomi-display" style="font-size: 16px; color: #666;"></span>
+            <span id="yomi-display" style="font-size: 16px; color: #666;"></span><br>
+            <span id="masu-display"></span>
         </div>
     </div>
     
@@ -44,22 +45,162 @@
     </div>
 
     <script>
-        // 資料集：包含標音與ます形 [cite: 1, 2, 17]
+        // --- 單字數據 (已包含所有 L11-L12 單字) ---
         const vocab = [
-            {term: "拜訪", masu: "訪れます", yomi: "訪れる (おとずれる) / II", group: "II"},
-            {term: "敲、拍", masu: "叩きます", yomi: "叩く (たたく) / I", group: "I"},
-            {term: "改變", masu: "変わります", yomi: "変わる (かわる) / I", group: "I"},
-            {term: "成功", masu: "成功します", yomi: "成功する (せいこうする) / III", group: "III"},
-            {term: "放置", masu: "置きます", yomi: "置く (おく) / I", group: "I"},
-            {term: "拿出", masu: "出します", yomi: "出す (だす) / I", group: "I"},
-            {term: "畢業旅行", masu: "卒業旅行", yomi: "そつぎょうりょこう / 名詞", group: "N"},
-            {term: "不方便的", masu: "不便な", yomi: "不便な (ふべんな) / な形", group: "Adj"},
-            {term: "忙碌的", masu: "忙しい", yomi: "忙しい (いそがしい) / い形", group: "Adj"},
-            {term: "雖然...但是", masu: "～けど", yomi: "～けど / 接續", group: "Other"}
-            // 這裡可以根據需要繼續擴充 [cite: 2, 17]
+            // 動詞
+            {term: "訪れる", masu: "訪れます", yomi: "おとずれる (II)", jp_text: "おとずれる"},
+            {term: "叩く", masu: "叩きます", yomi: "たたく (I)", jp_text: "たたく"},
+            {term: "変わる", masu: "変わります", yomi: "かわる (I)", jp_text: "かわる"},
+            {term: "知っている", masu: "知っています", yomi: "しっている (III/特殊)", jp_text: "しっている"},
+            {term: "上がる", masu: "上がります", yomi: "あがる (I)", jp_text: "あがる"},
+            {term: "開発する", masu: "開発します", yomi: "かいはつする (III)", jp_text: "かいはつする"},
+            {term: "成功する", masu: "成功します", yomi: "せいこうする (III)", jp_text: "せいこうする"},
+            {term: "置く", masu: "置きます", yomi: "おく (I)", jp_text: "おく"},
+            {term: "出す", masu: "出します", yomi: "だす (I)", jp_text: "だす"},
+            {term: "迎接（人）", masu: "（人を）迎えます", yomi: "（ひとを）むかえる (II)", jp_text: "むかえる"},
+            {term: "出門", masu: "出かけます", yomi: "でかける (II)", jp_text: "でかける"},
+            {term: "被發現", masu: "見つかります", yomi: "みつかる (I)", jp_text: "みつかる"},
+            {term: "応援する", masu: "応援します", yomi: "おうえんする (III)", jp_text: "おうえんする"},
+            {term: "晴れる", masu: "晴れます", yomi: "はれる (II)", jp_text: "はれる"},
+            {term: "思う", masu: "思います", yomi: "おもう (I)", jp_text: "おもう"},
+            {term: "發生（事故）", masu: "（事故が）起きます", yomi: "（じこが）おきる (II)", jp_text: "おきる"},
+            {term: "擁擠", masu: "混みます", yomi: "こむ (I)", jp_text: "こむ"},
+            {term: "空、閒", masu: "空きます", yomi: "すく (I)", jp_text: "すく"},
+            {term: "贏", masu: "勝ちます", yomi: "かつ (I)", jp_text: "かつ"},
+            {term: "消失、用光", masu: "な**くなります**", yomi: "なくなる (I)", jp_text: "なくなる"},
+            {term: "參加", masu: "（に）出ます", yomi: "（に）でる (II)", jp_text: "でる"},
+            {term: "募集する", masu: "募集します", yomi: "ぼしゅうする (III)", jp_text: "ぼしゅうする"},
+            {term: "緊張する", masu: "緊張します", yomi: "きんちょうする (III)", jp_text: "きんちょうする"},
+            {term: "吃驚", masu: "びっくりします", yomi: "びっくりする (III)", jp_text: "びっくりする"},
+            {term: "擊中、猜中", masu: "当たります", yomi: "あたる (I)", jp_text: "あたる"},
+            {term: "改變（他動詞）", masu: "変えます", yomi: "かえる (II)", jp_text: "かえる"},
+            {term: "變胖", masu: "太ります", yomi: "ふとる (I)", jp_text: "ふとる"},
+            {term: "掉落（他動詞）", masu: "落とします", yomi: "おとす (I)", jp_text: "おとす"},
+            {term: "壞掉（自動詞）", masu: "壊れます", yomi: "こわれる (II)", jp_text: "こわれる"},
+            {term: "合格する", masu: "合格します", yomi: "ごうかくする (III)", jp_text: "ごうかくする"},
+            {term: "挑戰", masu: "チャレンジします", yomi: "チャレンジする (III)", jp_text: "チャレンジする"},
+            {term: "選課", masu: "授業を取ります", yomi: "じゅぎょうをとる (I)", jp_text: "じゅぎょうをとる"},
+            {term: "掉、未通過", masu: "落とします", yomi: "おとす (I)", jp_text: "おとす"},
+            {term: "聽到", masu: "耳にします", yomi: "みみにする (III)", jp_text: "みみにする"},
+            {term: "擔心", masu: "心配します", yomi: "しんぱいする (III)", jp_text: "しんぱいする"},
+            {term: "討論、商量", masu: "話し合います", yomi: "はなしあう (I)", jp_text: "はなしあう"},
+            {term: "決定", masu: "決めます", yomi: "きめる (II)", jp_text: "きめる"},
+            {term: "認識", masu: "知り合います", yomi: "しりあう (I)", jp_text: "しりあう"},
+            {term: "丟棄", masu: "捨てます", yomi: "すてる (II)", jp_text: "すてる"},
+            {term: "燃燒（自動詞）", masu: "燃えます", yomi: "もえる (II)", jp_text: "もえる"},
+            {term: "居住", masu: "住みます", yomi: "すむ (I)", jp_text: "すむ"},
+            {term: "找到（他動詞）", masu: "見つけます", yomi: "みつける (II)", jp_text: "みつける"},
+            {term: "撐傘", masu: "傘を差します", yomi: "かさをさす (I)", jp_text: "かさをさす"},
+            {term: "聽得見", masu: "聞こえます", yomi: "きこえる (II)", jp_text: "きこえる"},
+            {term: "破裂、打破", masu: "割れます", yomi: "われる (II)", jp_text: "われる"},
+            {term: "發明", masu: "発明します", yomi: "はつめいする (III)", jp_text: "はつめいする"},
+            {term: "吃藥", masu: "薬を飲みます", yomi: "くすりをのむ (I)", jp_text: "くすりをのむ"},
+            {term: "休息", masu: "休みます", yomi: "やすむ (I)", jp_text: "やすむ"},
+            {term: "道歉", masu: "謝ります", yomi: "あやまる (I)", jp_text: "あやまる"},
+            {term: "廣傳、普及", masu: "広まります", yomi: "ひろまる (I)", jp_text: "ひろまる"},
+            {term: "商量、諮詢", masu: "相談します", yomi: "そうだんする (III)", jp_text: "そうだんする"},
+            {term: "吵架", masu: "喧嘩します", yomi: "けんかする (III)", jp_text: "けんかする"},
+            {term: "勉強、過度勞累", masu: "無理をします", yomi: "むりをする (III)", jp_text: "むりをする"},
+            {term: "減少（他動詞）", masu: "減らします", yomi: "へらす (I)", jp_text: "へらす"},
+            {term: "吃早餐", masu: "朝食をとります", yomi: "ちょうしょくをとる (I)", jp_text: "ちょうしょくをとる"},
+            {term: "增加（自動詞）", masu: "増えます", yomi: "ふえる (II)", jp_text: "ふえる"},
+            {term: "倒下", masu: "倒れます", yomi: "たおれる (II)", jp_text: "たおれる"},
+            {term: "受傷", masu: "怪我をします", yomi: "けがをする (III)", jp_text: "けがをする"},
+            {term: "中止", masu: "中止します", yomi: "ちゅうしする (III)", jp_text: "ちゅうしする"},
+            {term: "住一晚", masu: "一泊します", yomi: "いっぱくする (III)", jp_text: "いっぱくする"},
+            {term: "花費", masu: "かかります", yomi: "かかる (I)", jp_text: "かかる"},
+            {term: "感冒", masu: "風邪を引きます", yomi: "かぜをひく (I)", jp_text: "かぜをひく"},
+            {term: "提交", masu: "提出します", yomi: "ていしゅつする (III)", jp_text: "ていしゅつする"},
+            {term: "出口", masu: "輸出します", yomi: "ゆしゅつする (III)", jp_text: "ゆしゅつする"},
+            {term: "幫助", masu: "助けます", yomi: "たすける (II)", jp_text: "たすける"},
+            {term: "防禦、防止", masu: "防ぎます", yomi: "ふせぐ (I)", jp_text: "ふせぐ"},
+            {term: "嗅", masu: "嗅ぎます", yomi: "かぐ (I)", jp_text: "かぐ"},
+            {term: "感覺", masu: "感じます", yomi: "かんじる (II)", jp_text: "かんじる"},
+            {term: "冷靜、平靜", masu: "落ち着きます", yomi: "おちつく (I)", jp_text: "おちつく"},
+            {term: "恢復", masu: "回復します", yomi: "かいふくする (III)", jp_text: "かいふくする"},
+            {term: "調查", masu: "調査します", yomi: "ちょうさする (III)", jp_text: "ちょうさする"},
+            {term: "消化", masu: "消化します", yomi: "しょうかする (III)", jp_text: "しょうかする"},
+            {term: "放鬆", masu: "リラックスします", yomi: "リラックスする (III)", jp_text: "リラックスする"},
+            {term: "甩、搖擺", masu: "振ります", yomi: "ふる (I)", jp_text: "ふる"},
+            {term: "混亂", masu: "混乱します", yomi: "こんらんする (III)", jp_text: "こんらんする"},
+            {term: "翻譯", masu: "通訳します", yomi: "つうやくする (III)", jp_text: "つうやくする"},
+            // 形容詞・副詞・其他
+            {term: "慎重的", masu: "慎重な", yomi: "しんちょうな (な形)", jp_text: "しんちょうな"},
+            {term: "不方便的", masu: "不便な", yomi: "ふべんな (な形)", jp_text: "ふべんな"},
+            {term: "忙碌的", masu: "忙しい", yomi: "いそがしい (い形)", jp_text: "いそがしい"},
+            {term: "辛苦的、痛苦的", masu: "つらい", yomi: "つらい (い形)", jp_text: "つらい"},
+            {term: "嚴格的", masu: "厳しい", yomi: "きびしい (い形)", jp_text: "きびしい"},
+            {term: "寂寞的", masu: "寂しい", yomi: "さびしい (い形)", jp_text: "さびしい"},
+            {term: "傳統的", masu: "伝統的な", yomi: "でんとうてきな (な形)", jp_text: "でんとうてきな"},
+            {term: "吵鬧的", masu: "うるさい", yomi: "うるさい (い形)", jp_text: "うるさい"},
+            {term: "安全的", masu: "安全な", yomi: "あんぜんな (な形)", jp_text: "あんぜんな"},
+            {term: "黑暗的", masu: "暗い", yomi: "くらい (い形)", jp_text: "くらい"},
+            {term: "危險的", masu: "危ない", yomi: "あぶない (い形)", jp_text: "あぶない"},
+            {term: "疼痛的", masu: "痛い", yomi: "いたい (い形)", jp_text: "いたい"},
+            {term: "時髦的", masu: "オシャレな", yomi: "オシャレな (な形)", jp_text: "オシャレな"},
+            {term: "溫柔的", masu: "優しい", yomi: "やさしい (い形)", jp_text: "やさしい"},
+            {term: "細小的", masu: "細かい", yomi: "こまかい (い形)", jp_text: "こまかい"},
+            {term: "黑色的", masu: "黒い", yomi: "くろい (い形)", jp_text: "くろい"},
+            {term: "很多人", masu: "大勢", yomi: "おおぜい (副詞)", jp_text: "おおぜい"},
+            {term: "雖然～但是～", masu: "～けど", yomi: "～けど (接續)", jp_text: "けど"},
+            {term: "各種各樣", masu: "いろいろ", yomi: "いろいろ (副詞)", jp_text: "いろいろ"},
+            {term: "話說回來", masu: "ところで", yomi: "ところで (接續詞)", jp_text: "ところで"},
+            {term: "首先", masu: "まず", yomi: "まず (副詞)", jp_text: "まず"},
+            {term: "又、再", masu: "また", yomi: "また (副詞)", jp_text: "また"},
+            {term: "下次再見", masu: "また今度", yomi: "またこんど (慣用)", jp_text: "またこんど"},
+            // 名詞
+            {term: "愛迪生", masu: "エジソン", yomi: "エジソン (名詞)", jp_text: "エジソン"},
+            {term: "錢包", masu: "財布", yomi: "さいふ (名詞)", jp_text: "さいふ"},
+            {term: "垃圾", masu: "ごみ", yomi: "ごみ (名詞)", jp_text: "ごみ"},
+            {term: "推薦信", masu: "推薦状", yomi: "すいせんじょう (名詞)", jp_text: "すいせんじょう"},
+            {term: "胃", masu: "胃", yomi: "い (名詞)", jp_text: "い"},
+            {term: "缺水", masu: "水不足", yomi: "みずぶそく (名詞)", jp_text: "みずぶそく"},
+            {term: "上班族", masu: "サラリーマン", yomi: "サラリーマン (名詞)", jp_text: "サラリーマン"},
+            {term: "環境", masu: "環境", yomi: "かんきょう (名詞)", jp_text: "かんきょう"},
+            {term: "颱風", masu: "台風", yomi: "たいふう (名詞)", jp_text: "たいふう"},
+            {term: "卒業旅行", masu: "卒業旅行", yomi: "そつぎょうりょこう (名詞)", jp_text: "そつぎょうりょこう"},
+            {term: "汽車工廠", masu: "自動車工場", yomi: "じどうしゃこうじょう (名詞)", jp_text: "じどうしゃこうじょう"},
+            {term: "荷蘭人", masu: "オランダ人", yomi: "オランダじん (名詞)", jp_text: "オランダじん"},
+            {term: "心臟病", masu: "心臟病", yomi: "しんぞうびょう (名詞)", jp_text: "しんぞうびょう"},
+            {term: "香味", masu: "香り", yomi: "かおり (名詞)", jp_text: "かおり"},
+            {term: "幸福感", masu: "幸福感", yomi: "こうふくかん (名詞)", jp_text: "こうふくかん"},
+            {term: "丈夫", masu: "主人", yomi: "しゅじん (名詞)", jp_text: "しゅじん"},
         ];
 
-        let currentIndex = 0;
+        let currentIndex = -1;
+
+        // Web Speech API
+        const synth = window.speechSynthesis;
+        const speechBtn = document.getElementById('speech-btn');
+        let japaneseVoice = null;
+
+        if (synth) {
+            synth.onvoiceschanged = () => {
+                japaneseVoice = synth.getVoices().find(voice => voice.lang === 'ja-JP');
+                if (japaneseVoice) speechBtn.disabled = false;
+            };
+            if (synth.getVoices().length > 0) {
+                 japaneseVoice = synth.getVoices().find(voice => voice.lang === 'ja-JP');
+                 if (japaneseVoice) speechBtn.disabled = false;
+            }
+        }
+
+        function speakText(text) {
+            if (!text || !synth) return;
+            const utterThis = new SpeechSynthesisUtterance(text);
+            utterThis.lang = 'ja-JP';
+            if (japaneseVoice) {
+                utterThis.voice = japaneseVoice;
+            }
+            synth.speak(utterThis);
+        }
+
+        function getCurrentJapaneseText() {
+            if (currentIndex >= 0 && vocab[currentIndex].jp_text) {
+                return vocab[currentIndex].jp_text;
+            }
+            return '';
+        }
 
         function flipCard() {
             const back = document.getElementById('card-back');
@@ -110,6 +251,9 @@
                 optionsDiv.appendChild(btn);
             });
         }
+        
+        // 首次載入時檢查語音功能
+        window.onload = nextCard;
     </script>
 </body>
 </html>
